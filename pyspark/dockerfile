@@ -1,0 +1,6 @@
+FROM python:3.12.6-bookworm
+RUN ["pip3", "install", "poetry"]
+WORKDIR /home/pyspark
+COPY . /home/pyspark
+RUN ["python3", "-m", "poetry", "install", "--no-root"]
+ENTRYPOINT ["/bin/bash"]
