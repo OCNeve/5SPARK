@@ -8,9 +8,6 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      my_network:
-        ipv4_address: 172.20.0.2
     ports:
       - "5432:5432"
 
@@ -26,9 +23,6 @@ services:
       - pgadmin:/var/lib/pgadmin
     depends_on:
       - postgres
-
-    networks:
-          - my_network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -51,7 +45,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ./create_kafka_topic.sh:/opt/kafka/create_kafka_topic.sh
+    command: "bash -c '/opt/kafka/create_kafka_topic.sh & /etc/confluent/docker/run'"
 
+  
   spark-master:
     image: bitnami/spark:latest
     environment:
@@ -73,15 +71,15 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
     ports:
       - '8081:8081'     # Spark worker web UI
     volumes:
       - spark_data:/bitnami/spark
 
   python:
-    build: ./pyspark
+    build: ./pyspark_container
     depends_on: 
       - zookeeper
       - kafka
@@ -89,12 +87,6 @@ services:
       - spark-worker
     tty: true
 
-
-networks:
-  my_network:
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
 
 volumes:
   spark_data:

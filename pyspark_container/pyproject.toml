@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pyspark"
+name = "pyspark_container"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -10,6 +10,7 @@ python = "^3.12"
 mastodon-py = "^1.8.1"
 six = "^1.16.0"
 kafka-python-ng = "^2.2.2"
+pyspark = "^3.5.3"
 
 
 [build-system]

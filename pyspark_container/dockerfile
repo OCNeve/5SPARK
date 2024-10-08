@@ -1,0 +1,27 @@
+FROM python:3.12.6-bullseye
+
+# Install Java (required by Spark)
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jdk && \
+    apt-get clean
+
+# Set JAVA_HOME environment variable
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+RUN wget https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.3.1/spark-sql-kafka-0-10_2.12-3.3.1.jar -P /opt/spark/jars/
+
+# Install Poetry and Python dependencies
+RUN pip3 install poetry
+WORKDIR /home/pyspark_container
+COPY pyproject.toml /home/pyspark_container/pyproject.toml
+COPY poetry.lock /home/pyspark_container/poetry.lock
+
+RUN poetry config virtualenvs.in-project true
+RUN poetry install --no-root
+
+COPY . /home/pyspark_container
+# Set PATH for Poetry virtualenv
+ENV PATH="/home/pyspark_container/.venv/bin:$PATH"
+
+ENTRYPOINT ["poetry", "run", "python", "main.py"]
