@@ -6,8 +6,6 @@ from pyspark.sql.functions import from_json, col, window, length
 from pyspark.sql.types import StructType, StructField, StringType, LongType, ArrayType
 import time 
 
-
-# Step 1: Define the schema for the incoming Mastodon data
 schema = StructType([
     StructField("user_id", StringType(), True),
     StructField("content", StringType(), True),
@@ -17,7 +15,6 @@ schema = StructType([
     StructField("hashtags", ArrayType(StringType()), True)
 ])
 
-# Step 2: Initialize a Spark session
 spark = SparkSession.builder \
     .appName("MastodonStreamProcessor") \
     .master("spark://spark-master:7077") \
@@ -32,7 +29,6 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 
-# Step 3: Connect to Kafka and consume the data
 kafka_df = spark \
     .readStream \
     .format("kafka") \
@@ -40,16 +36,13 @@ kafka_df = spark \
     .option("subscribe", "mastodonStream") \
     .load()
 
-# Parse the data coming from Kafka
 parsed_df = kafka_df.selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), schema).alias("data")) \
     .select("data.*")
 
-# Step 4: Apply transformations
-# Filter toots based on a keyword (e.g., containing "AI")
+
 keyword_filtered_df = parsed_df.filter(col("content").contains("AI"))
 
-# Extract time window (e.g., grouping by hour)
 windowed_df = keyword_filtered_df \
     .withColumn("timestamp", col("timestamp").cast("timestamp")) \
     .groupBy(window(col("timestamp"), "1 hour")) \
@@ -58,13 +51,11 @@ windowed_df = keyword_filtered_df \
     .withColumn("end_time", col("window.end")) \
     .drop("window")
 
-# Calculate the average toot length per user
 avg_toot_length_df = keyword_filtered_df \
     .withColumn("toot_length", length(col("content"))) \
     .groupBy("user_id") \
     .agg({"toot_length": "avg"})
 
-# Step 5: Set up PostgreSQL connection details
 jdbc_url = "jdbc:postgresql://postgres:5432/postgres"
 connection_properties = {
     "user": "postgres",
@@ -72,8 +63,6 @@ connection_properties = {
     "driver": "org.postgresql.Driver"
 }
 
-# Step 6: Store the results in PostgreSQL
-# 1. Save windowed toot counts (toots per hour)
 window_query = windowed_df.writeStream \
     .outputMode("complete") \
     .foreachBatch(lambda df, epochId: df.write.jdbc(
@@ -83,7 +72,6 @@ window_query = windowed_df.writeStream \
         properties=connection_properties)) \
     .start()
 
-# 2. Save average toot length per user
 avg_length_query = avg_toot_length_df.writeStream \
     .outputMode("complete") \
     .foreachBatch(lambda df, epochId: df.write.jdbc(
