@@ -49,44 +49,18 @@ services:
       - ./create_kafka_topic.sh:/opt/kafka/create_kafka_topic.sh
     command: "bash -c '/opt/kafka/create_kafka_topic.sh & /etc/confluent/docker/run'"
 
-  
-  spark-master:
-    image: bitnami/spark:latest
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    ports:
-      - '7077:7077'     # Spark master port
-      - '8080:8080'     # Spark web UI
-    volumes:
-      - spark_data:/bitnami/spark
-
-  spark-worker:
-    image: bitnami/spark:latest
-    depends_on:
-      - spark-master
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
-    ports:
-      - '8081:8081'     # Spark worker web UI
-    volumes:
-      - spark_data:/bitnami/spark
-
-  python:
+  spark-python:
     build: ./pyspark_container
-    depends_on: 
+    environment:
+      - SPARK_MASTER=local[*]
+    volumes:
+      - spark_data:/bitnami/spark
+    ports:
+      - '4040:4040'
+    depends_on:
       - zookeeper
       - kafka
-      - spark-master
-      - spark-worker
     tty: true
-
 
 volumes:
   spark_data:
