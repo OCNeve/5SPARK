@@ -1,45 +1,4 @@
-FROM python:3.12.6-bullseye
+FROM jupyter/pyspark-notebook
 
-# Install Java (required by Spark)
-RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk && \
-    apt-get clean
+COPY ./notebook.ipynb /home/jovyan/work/
 
-# Set JAVA_HOME environment variable
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
-ENV PATH="$JAVA_HOME/bin:$PATH"
-
-RUN wget  https://dlcdn.apache.org/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz && \
-    tar -xvzf spark-3.5.3-bin-hadoop3.tgz && \
-    mv spark-3.5.3-bin-hadoop3 /opt/spark && \
-    rm spark-3.5.3-bin-hadoop3.tgz
-
-# Set Spark environment variables
-ENV SPARK_HOME=/opt/spark
-ENV PATH="$SPARK_HOME/bin:$PATH"
-
-# Add Spark Kafka integration jar
-RUN wget https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.1.0/spark-sql-kafka-0-10_2.12-3.1.0.jar -P /opt/spark/jars/
-
-# Add Kafka clients jar
-RUN wget https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.1.0/kafka-clients-3.1.0.jar -P /opt/spark/jars/
-
-# Install Poetry and Python dependencies
-RUN pip3 install poetry
-WORKDIR /home/pyspark_container
-COPY pyproject.toml /home/pyspark_container/pyproject.toml
-COPY poetry.lock /home/pyspark_container/poetry.lock
-
-RUN poetry config virtualenvs.in-project true
-RUN poetry install --no-root
-
-COPY . /home/pyspark_container
-
-# Set PATH for Poetry virtualenv
-ENV PATH="/home/pyspark_container/.venv/bin:$PATH"
-
-# Set the Spark master to local[*] mode for running locally
-ENV SPARK_MASTER=local[*]
-
-# Start the application
-ENTRYPOINT ["poetry", "run", "python", "main.py"]
