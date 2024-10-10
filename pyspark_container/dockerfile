@@ -1,0 +1,6 @@
+FROM jupyter/pyspark-notebook
+
+COPY ./notebook.ipynb /home/jovyan/work/
+COPY ./data.csv /home/jovyan/work/data.csv
+COPY ./app.py /home/jovyan/work/app.py
+
