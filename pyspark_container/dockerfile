@@ -1,6 +1,13 @@
 FROM jupyter/pyspark-notebook
 
-COPY ./notebook.ipynb /home/jovyan/work/
-COPY ./data.csv /home/jovyan/work/data.csv
-COPY ./app.py /home/jovyan/work/app.py
+COPY ./data /home/jovyan/work/data/
+COPY ./source /home/jovyan/work/
 
+USER root
+
+# Change ownership and permissions
+RUN chown -R jovyan:users /home/jovyan/work/ && \
+    chmod -R g+w /home/jovyan/work/
+
+# Switch back to the jovyan user
+USER jovyan

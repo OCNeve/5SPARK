@@ -7,7 +7,7 @@ import seaborn as sns
 # Load the dataset (assuming the file is a CSV located at the given path)
 @st.cache_data
 def load_data():
-    df = pd.read_csv("/home/jovyan/work/data.csv", header=None, encoding="ISO-8859-1")
+    df = pd.read_csv("/home/jovyan/work/data/data.csv", header=None, encoding="ISO-8859-1")
     df.columns = ['target', 'ids', 'date', 'flag', 'user', 'text']
     df['date'] = df['date'].str.replace(r' [A-Z]{3}', '', regex=True)  # Remove timezone (e.g., 'PDT')
     df['date'] = pd.to_datetime(df['date'], format='%a %b %d %H:%M:%S %Y', errors='coerce')  # Parse the date
