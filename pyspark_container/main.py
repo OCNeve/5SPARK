@@ -3,6 +3,7 @@ from pyspark.sql.functions import from_json, col, window, length
 from pyspark.sql.types import StructType, StructField, StringType, LongType, ArrayType
 import time 
 
+
 # Define schema for incoming data
 schema = StructType([
     StructField("user_id", StringType(), True),

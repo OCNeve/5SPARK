@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "kafka-streamer"
+version = "0.1.0"
+description = ""
+authors = ["None"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+mastodon-py = "^1.8.1"
+kafka-python-ng = "^2.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

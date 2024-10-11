@@ -48,6 +48,12 @@ services:
       - ./create_kafka_topic.sh:/opt/kafka/create_kafka_topic.sh
     command: "bash -c '/opt/kafka/create_kafka_topic.sh & /etc/confluent/docker/run'"
 
+  kafka-stream:
+    build: ./kafka_streamer
+    depends_on:
+      - zookeeper
+      - kafka
+
   spark-python:
     build: ./pyspark_container
     ports:
@@ -55,6 +61,7 @@ services:
       - '8888:8888'
       - '8501:8501'
     depends_on:
+      - kafka-stream
       - zookeeper
       - kafka
 
